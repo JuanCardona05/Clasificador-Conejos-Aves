@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <title>Conejos y Aves</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <style>
+      :root {
+        --primary: #6d5dfc;
+        --primary-dark: #5144d8;
+        --ink: #20233a;
+        --muted: #737890;
+        --surface: rgba(255, 255, 255, 0.92);
+        --line: #e8e9f2;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+        background: linear-gradient(135deg, #f4f2ff 0%, #f7fbff 52%, #edf8f5 100%);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .topbar {
+        padding: 46px 20px 30px;
+        text-align: center;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--primary-dark);
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+
+      .topbar h1 {
+        margin: 0;
+        font-size: clamp(2.1rem, 5vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -.04em;
+      }
+
+      .topbar p {
+        max-width: 560px;
+        margin: 12px auto 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .app-card {
+        max-width: 920px;
+        margin: 0 auto 48px;
+        padding: clamp(20px, 4vw, 38px);
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, .85);
+        border-radius: 28px;
+        box-shadow: 0 24px 70px rgba(53, 48, 109, .12);
+        backdrop-filter: blur(12px);
+      }
+
+      .section-title {
+        margin: 0 0 4px;
+        font-size: 1.15rem;
+        font-weight: 750;
+      }
+
+      .section-copy {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: .9rem;
+      }
+
+      .dropzone {
+        display: block;
+        padding: 26px 18px;
+        color: var(--primary-dark);
+        text-align: center;
+        background: #f8f7ff;
+        border: 1.5px dashed #aaa4f5;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: .2s ease;
+      }
+
+      .dropzone:hover {
+        background: #f1efff;
+        border-color: var(--primary);
+        transform: translateY(-1px);
+      }
+
+      .dropzone.active {
+        background: #eeecff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(109, 93, 252, .12);
+      }
+
+      .upload-icon { display: block; margin-bottom: 7px; font-size: 1.8rem; }
+      .dropzone strong { display: block; font-size: .98rem; }
+      .dropzone small { color: var(--muted); }
+      #imagen { display: none; }
+
+      .preview-panel {
+        position: relative;
+        display: flex;
+        min-height: 330px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 22px;
+        overflow: hidden;
+        background: #17192a;
+        border-radius: 20px;
+      }
+
+      #canvas {
+        display: block;
+        width: 100%;
+        max-width: 440px;
+        height: auto;
+        aspect-ratio: 1;
+        object-fit: contain;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .controls .btn {
+        flex: 1 1 190px;
+        min-height: 46px;
+        border: 0;
+        border-radius: 12px;
+        font-weight: 700;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        box-shadow: 0 8px 18px rgba(109, 93, 252, .22);
+      }
+
+      .btn-primary:hover { background: var(--primary-dark); }
+      .btn-secondary { color: #36374e; background: #ececf4; }
+      .btn-secondary:hover { color: #24253a; background: #dfdfeb; }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        margin-top: 15px;
+        color: var(--muted);
+        font-size: .88rem;
+      }
+
+      .status::before {
+        width: 8px;
+        height: 8px;
+        background: #f4b740;
+        border-radius: 50%;
+        content: "";
+      }
+
+      .status.ready::before { background: #25b981; }
+      .status.error::before { background: #e05262; }
+
+      .result-card {
+        margin-top: 4px;
+        padding: 18px;
+        text-align: center;
+        background: #f7f7fc;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+
+      #resultado {
+        min-height: 48px;
+        color: var(--primary-dark);
+        font-size: clamp(2rem, 7vw, 3.5rem);
+        font-weight: 850;
+        line-height: 1.1;
+      }
+
+      .probabilidades {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+        text-align: left;
+      }
+
+      .probabilidad-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: .84rem;
+        font-weight: 700;
+      }
+
+      .barra {
+        height: 9px;
+        overflow: hidden;
+        background: #e5e5ef;
+        border-radius: 99px;
+      }
+
+      .barra-valor {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        transition: width .35s ease;
+      }
+
+      #barra-ave { background: #48a9e8; }
+      #barra-conejo { background: #6d5dfc; }
+
+      @media (max-width: 600px) {
+        .topbar { padding-top: 30px; }
+        .app-card { margin: 0 12px 30px; border-radius: 22px; }
+        .preview-panel { min-height: 250px; }
+      }
+    </style>
+  </head>
+  <body>
+    
+    <main>
+      <header class="topbar">
+        <span class="eyebrow">Clasificador de imágenes</span>
+        <h1>Conejos y Aves</h1>
+        <p>Sube una imagen o activa la cámara para obtener una predicción.</p>
+      </header>
+
+      <section class="app-card">
+        <h2 class="section-title">Analiza una imagen</h2>
+        <p class="section-copy">Formatos compatibles: JPG, PNG, WEBP y otras imágenes del dispositivo.</p>
+        <label class="dropzone" for="imagen">
+          <span class="upload-icon">↑</span>
+          <strong>Haz clic para seleccionar una imagen</strong>
+          <small>o arrástrala aquí</small>
+        </label>
+        <input type="file" id="imagen" accept="image/*">
+            <video id="video" playsinline autoplay style="display: none;"></video>
+        <div class="preview-panel">
+            <canvas id="canvas" width="400" height="400"></canvas>
+            <canvas id="otrocanvas" width="150" height="150" style="display: none"></canvas>
+        </div>
+        <div class="controls">
+          <button class="btn btn-secondary" id="usar-camara" onclick="mostrarCamara();">Usar cámara</button>
+          <button class="btn btn-primary" id="cambiar-camara" onclick="cambiarCamara();" style="display: none;">Cambiar cámara</button>
+        </div>
+        <div id="estado" class="status">Cargando modelo...</div>
+        <div class="result-card">
+          <div id="resultado">—</div>
+          <div class="probabilidades">
+            <div>
+              <div class="probabilidad-header">
+                <span>Ave</span>
+                <span id="porcentaje-ave">—</span>
+              </div>
+              <div class="barra"><div id="barra-ave" class="barra-valor"></div></div>
+            </div>
+            <div>
+              <div class="probabilidad-header">
+                <span>Conejo</span>
+                <span id="porcentaje-conejo">—</span>
+              </div>
+              <div class="barra"><div id="barra-conejo" class="barra-valor"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+
+  <script type="text/javascript">
+
+    var tamano = 400;
+    var video = document.getElementById("video");
+    var canvas = document.getElementById("canvas");
+    var otrocanvas = document.getElementById("otrocanvas");
+    var ctx = canvas.getContext("2d");
+    var currentStream = null;
+    var facingMode = "user";
+    var usandoCamara = false;
+
+    var modelo = null;
+    var imagen = document.getElementById("imagen");
+    var estado = document.getElementById("estado");
+    var resultadoElemento = document.getElementById("resultado");
+    var porcentajeAveElemento = document.getElementById("porcentaje-ave");
+    var porcentajeConejoElemento = document.getElementById("porcentaje-conejo");
+    var barraAveElemento = document.getElementById("barra-ave");
+    var barraConejoElemento = document.getElementById("barra-conejo");
+    var dropzone = document.querySelector(".dropzone");
+
+    (async() => {
+      console.log("Cargando modelo...");
+      try {
+        modelo = await tf.loadLayersModel("model.json");
+        estado.textContent = "Modelo listo. Selecciona una imagen.";
+        estado.classList.add("ready");
+        console.log("Modelo cargado");
+      } catch (error) {
+        estado.textContent = "No se pudo cargar el modelo.";
+        estado.classList.add("error");
+        console.error("Error al cargar el modelo:", error);
+      }
+    })();
+
+    window.onload = function() {
+      imagen.addEventListener("change", cargarImagen);
+      ["dragenter", "dragover"].forEach(function(evento) {
+        dropzone.addEventListener(evento, function(evento) {
+          evento.preventDefault();
+          dropzone.classList.add("active");
+        });
+      });
+      ["dragleave", "drop"].forEach(function(evento) {
+        dropzone.addEventListener(evento, function(evento) {
+          evento.preventDefault();
+          dropzone.classList.remove("active");
+        });
+      });
+      dropzone.addEventListener("drop", function(evento) {
+        if (evento.dataTransfer.files.length > 0) {
+          imagen.files = evento.dataTransfer.files;
+          cargarImagen({ target: imagen });
+        }
+      });
+    }
+
+    function mostrarCamara() {
+      usandoCamara = true;
+      document.getElementById("usar-camara").style.display = "none";
+      document.getElementById("cambiar-camara").style.display = "inline-block";
+      var opciones = {
+        audio: false,
+        video: {
+          width: tamano, height: tamano
+        }
+      }
+
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(opciones)
+            .then(function(stream) {
+              currentStream = stream;
+              video.srcObject = currentStream;
+              procesarCamara();
+              predecir();
+            })
+            .catch(function(err) {
+              alert("No se pudo utilizar la camara :(");
+              console.log(err);
+              alert(err);
+            })
+      } else {
+        alert("No existe la funcion getUserMedia");
+      }
+    }
+
+    function cambiarCamara() {
+          usandoCamara = true;
+          if (currentStream) {
+              currentStream.getTracks().forEach(track => {
+                  track.stop();
+              });
+          }
+
+          facingMode = facingMode == "user" ? "environment" : "user";
+
+          var opciones = {
+              audio: false,
+              video: {
+                  facingMode: facingMode, width: tamano, height: tamano
+              }
+          };
+
+
+          navigator.mediaDevices.getUserMedia(opciones)
+              .then(function(stream) {
+                  currentStream = stream;
+                  video.srcObject = currentStream;
+              })
+              .catch(function(err) {
+                  console.log("Oops, hubo un error", err);
+              })
+      }
+
+    function procesarCamara() {
+      if (!usandoCamara) {
+        return;
+      }
+      ctx.drawImage(video, 0, 0, tamano, tamano, 0, 0, tamano, tamano);
+      setTimeout(procesarCamara, 20);
+    }
+
+    function cargarImagen(evento) {
+      var archivo = evento.target.files[0];
+      if (!archivo || !archivo.type.startsWith("image/")) {
+        estado.textContent = "Selecciona un archivo de imagen válido.";
+        estado.classList.remove("ready");
+        estado.classList.add("error");
+        return;
+      }
+
+      usandoCamara = false;
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+      }
+      document.getElementById("usar-camara").style.display = "inline-block";
+      document.getElementById("cambiar-camara").style.display = "none";
+
+      var imagenCargada = new Image();
+      imagenCargada.onload = function() {
+        ctx.clearRect(0, 0, tamano, tamano);
+        ctx.drawImage(imagenCargada, 0, 0, tamano, tamano);
+        estado.textContent = "Imagen cargada.";
+        estado.classList.remove("error");
+        estado.classList.add("ready");
+        predecirUnaVez();
+        URL.revokeObjectURL(imagenCargada.src);
+      };
+      imagenCargada.onerror = function() {
+        estado.textContent = "No se pudo leer la imagen.";
+        estado.classList.remove("ready");
+        estado.classList.add("error");
+      };
+      imagenCargada.src = URL.createObjectURL(archivo);
+    }
+
+    function predecir() {
+      if (modelo != null && usandoCamara) {
+        predecirUnaVez();
+      }
+
+      if (usandoCamara) {
+        setTimeout(predecir, 150);
+      }
+    }
+
+    function predecirUnaVez() {
+      if (modelo == null) {
+        estado.textContent = "Espera a que termine de cargar el modelo.";
+        estado.classList.remove("ready");
+        estado.classList.add("error");
+        return;
+      }
+
+      resample_single(canvas, 100, 100, otrocanvas);
+
+      var ctx2 = otrocanvas.getContext("2d");
+      var imgData = ctx2.getImageData(0, 0, 100, 100);
+
+      var arr = [];
+      var arr100 = [];
+
+      for (var p = 0; p < imgData.data.length; p += 4) {
+        var rojo = imgData.data[p] / 255;
+        var verde = imgData.data[p + 1] / 255;
+        var azul = imgData.data[p + 2] / 255;
+
+        var gris = (rojo + verde + azul) / 3;
+
+        arr100.push([gris]);
+        if (arr100.length == 100) {
+          arr.push(arr100);
+          arr100 = [];
+        }
+      }
+
+      arr = [arr];
+
+      var tensor = tf.tensor4d(arr);
+      var salida = modelo.predict(tensor);
+      var resultado = salida.dataSync()[0];
+      salida.dispose();
+      tensor.dispose();
+
+      var porcentajeConejo = resultado * 100;
+      var porcentajeAve = (1 - resultado) * 100;
+      var respuesta;
+      if (resultado <= .5) {
+        respuesta = "Ave";
+      } else {
+        respuesta = "Conejo";
+      }
+      resultadoElemento.textContent = respuesta;
+      porcentajeAveElemento.textContent = porcentajeAve.toFixed(1) + "%";
+      porcentajeConejoElemento.textContent = porcentajeConejo.toFixed(1) + "%";
+      barraAveElemento.style.width = porcentajeAve + "%";
+      barraConejoElemento.style.width = porcentajeConejo + "%";
+    }
+
+    /**
+       * Hermite resize - fast image resize/resample using Hermite filter. 1 cpu version!
+       * 
+       * @param {HtmlElement} canvas
+       * @param {int} width
+       * @param {int} height
+       * @param {boolean} resize_canvas if true, canvas will be resized. Optional.
+       * Cambiado por RT, resize canvas ahora es donde se pone el chiqitillllllo
+       */
+      function resample_single(canvas, width, height, resize_canvas) {
+          var width_source = canvas.width;
+          var height_source = canvas.height;
+          width = Math.round(width);
+          height = Math.round(height);
+
+          var ratio_w = width_source / width;
+          var ratio_h = height_source / height;
+          var ratio_w_half = Math.ceil(ratio_w / 2);
+          var ratio_h_half = Math.ceil(ratio_h / 2);
+
+          var ctx = canvas.getContext("2d");
+          var ctx2 = resize_canvas.getContext("2d");
+          var img = ctx.getImageData(0, 0, width_source, height_source);
+          var img2 = ctx2.createImageData(width, height);
+          var data = img.data;
+          var data2 = img2.data;
+
+          for (var j = 0; j < height; j++) {
+              for (var i = 0; i < width; i++) {
+                  var x2 = (i + j * width) * 4;
+                  var weight = 0;
+                  var weights = 0;
+                  var weights_alpha = 0;
+                  var gx_r = 0;
+                  var gx_g = 0;
+                  var gx_b = 0;
+                  var gx_a = 0;
+                  var center_y = (j + 0.5) * ratio_h;
+                  var yy_start = Math.floor(j * ratio_h);
+                  var yy_stop = Math.ceil((j + 1) * ratio_h);
+                  for (var yy = yy_start; yy < yy_stop; yy++) {
+                      var dy = Math.abs(center_y - (yy + 0.5)) / ratio_h_half;
+                      var center_x = (i + 0.5) * ratio_w;
+                      var w0 = dy * dy; //pre-calc part of w
+                      var xx_start = Math.floor(i * ratio_w);
+                      var xx_stop = Math.ceil((i + 1) * ratio_w);
+                      for (var xx = xx_start; xx < xx_stop; xx++) {
+                          var dx = Math.abs(center_x - (xx + 0.5)) / ratio_w_half;
+                          var w = Math.sqrt(w0 + dx * dx);
+                          if (w >= 1) {
+                              //pixel too far
+                              continue;
+                          }
+                          //hermite filter
+                          weight = 2 * w * w * w - 3 * w * w + 1;
+                          var pos_x = 4 * (xx + yy * width_source);
+                          //alpha
+                          gx_a += weight * data[pos_x + 3];
+                          weights_alpha += weight;
+                          //colors
+                          if (data[pos_x + 3] < 255)
+                              weight = weight * data[pos_x + 3] / 250;
+                          gx_r += weight * data[pos_x];
+                          gx_g += weight * data[pos_x + 1];
+                          gx_b += weight * data[pos_x + 2];
+                          weights += weight;
+                      }
+                  }
+                  data2[x2] = gx_r / weights;
+                  data2[x2 + 1] = gx_g / weights;
+                  data2[x2 + 2] = gx_b / weights;
+                  data2[x2 + 3] = gx_a / weights_alpha;
+              }
+          }
+
+
+          ctx2.putImageData(img2, 0, 0);
+      }
+  </script>
+  </body>
+</html>
